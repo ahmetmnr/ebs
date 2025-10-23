@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>CSB - Başvuru Değerlendirme Paneli (Detaylı)</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --csb-blue: #0066cc;
+            --csb-dark: #003366;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        body {
+            background: #f5f7fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .top-bar {
+            background: linear-gradient(135deg, var(--csb-dark) 0%, var(--csb-blue) 100%);
+            color: white;
+            padding: 15px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .section-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--csb-dark);
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 3px solid var(--csb-blue);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .info-card {
+            background: #f9fafb;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid var(--csb-blue);
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #6b7280;
+            font-size: 0.85rem;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .info-value {
+            color: #111827;
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        .tablo-card {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .tablo-card.green {
+            border-color: var(--success);
+            background: #f0fdf4;
+        }
+
+        .tablo-card.red {
+            border-color: var(--danger);
+            background: #fef2f2;
+        }
+
+        .tablo-card.yellow {
+            border-color: var(--warning);
+            background: #fffbeb;
+        }
+
+        .tablo-card.skip {
+            border-color: #9ca3af;
+            background: #f3f4f6;
+            opacity: 0.7;
+        }
+
+        .tablo-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .validation-badge {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .validation-badge.green {
+            background: var(--success);
+            color: white;
+        }
+
+        .validation-badge.red {
+            background: var(--danger);
+            color: white;
+        }
+
+        .validation-badge.yellow {
+            background: var(--warning);
+            color: white;
+        }
+
+        .validation-badge.skip {
+            background: #9ca3af;
+            color: white;
+        }
+
+        .category-section {
+            background: #f9fafb;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .category-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--csb-dark);
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .data-item {
+            padding: 10px;
+            background: white;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .data-label {
+            font-weight: 600;
+            color: #6b7280;
+            font-size: 0.85rem;
+        }
+
+        .data-value {
+            color: #111827;
+            margin-top: 3px;
+        }
+
+        .badge-uygun {
+            background: var(--success);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .badge-uygun-degil {
+            background: var(--danger);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .badge-beklemede {
+            background: var(--warning);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .tablo-card.pending {
+            border-color: #6366f1;
+            background: #eef2ff;
+        }
+
+        .validation-badge.pending {
+            background: #6366f1;
+            color: white;
+        }
+
+        .document-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            margin: 3px;
+        }
+
+        .document-badge.success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .document-badge.danger {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .alert-custom {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid;
+        }
+
+        .alert-custom.success {
+            background: #d1fae5;
+            border-color: var(--success);
+            color: #065f46;
+        }
+
+        .alert-custom.danger {
+            background: #fee2e2;
+            border-color: var(--danger);
+            color: #991b1b;
+        }
+
+        .alert-custom.warning {
+            background: #fef3c7;
+            border-color: var(--warning);
+            color: #92400e;
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="container-fluid px-4">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h4 class="mb-0">
+                        <i class="bi bi-shield-check"></i>
+                        T.C. Çevre, Şehircilik ve İklim Değişikliği Bakanlığı
+                    </h4>
+                    <small>Başvuru Değerlendirme Sistemi - Detaylı Görünüm</small>
+                </div>
+                <div class="col-md-6 text-end">
+                    <button class="btn btn-light btn-sm" onclick="window.location.href='/'">
+                        <i class="bi bi-arrow-left"></i> Listeye Dön
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid px-4 mt-4">
+        <!-- Başvuru Özeti -->
+        <div class="section-card">
+            <div class="section-title">
+                <i class="bi bi-file-earmark-text"></i>
+                <span>Başvuru Özeti</span>
+            </div>
+            <div id="applicationSummary">
+                <div class="text-center text-muted py-4">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Yükleniyor...</span>
+                    </div>
+                    <p class="mt-2">Başvuru yükleniyor...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tablo 1-8 (Değerlendirme Tabloları) -->
+        <div class="section-card" id="tablolarSection" style="display: none;">
+            <div class="section-title">
+                <i class="bi bi-table"></i>
+                <span>Değerlendirme Tabloları</span>
+            </div>
+            <div id="tablolarContainer"></div>
+        </div>
+
+        <!-- Tüm Belgelerden Çıkarılan Bilgiler -->
+        <div class="section-card" id="allDocumentsSection" style="display: none;">
+            <div class="section-title">
+                <i class="bi bi-files"></i>
+                <span>Belgelerden Çıkarılan Bilgiler (Kategorik)</span>
+                <span class="badge bg-primary ms-2" id="documentCount">0</span>
+            </div>
+            <div id="allDocumentsContainer"></div>
+        </div>
+
+        <!-- Uygunluk Değerlendirmesi -->
+        <div class="section-card" id="eligibilitySection" style="display: none;">
+            <div class="section-title">
+                <i class="bi bi-check2-circle"></i>
+                <span>Uygunluk Değerlendirmesi</span>
+            </div>
+            <div id="eligibilityPanel"></div>
+        </div>
+
+        <!-- Validation ve Requirements -->
+        <div class="section-card" id="validationSection" style="display: none;">
+            <div class="section-title">
+                <i class="bi bi-exclamation-triangle"></i>
+                <span>Doğrulama ve Eksiklikler</span>
+            </div>
+            <div id="validationPanel"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentApplication = null;
+
+        // URL'den takip_no al
+        const urlParams = new URLSearchParams(window.location.search);
+        const takipNo = urlParams.get('takip_no');
+
+        if (!takipNo) {
+            alert('Takip numarası belirtilmedi!');
+            window.location.href = '/';
+        }
+
+        // Sayfa yüklendiğinde başvuruyu getir
+        document.addEventListener('DOMContentLoaded', function() {
+            loadApplication(takipNo);
+        });
+
+        async function loadApplication(takipNo) {
+            try {
+                const response = await fetch(`/api/application/${takipNo}`);
+                currentApplication = await response.json();
+
+                renderApplicationSummary(currentApplication);
+                renderTablolar(currentApplication);
+                renderAllDocuments(currentApplication);
+                renderEligibility(currentApplication);
+                renderValidation(currentApplication);
+
+            } catch (error) {
+                console.error('Başvuru yüklenemedi:', error);
+                document.getElementById('applicationSummary').innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        Başvuru yüklenirken hata oluştu: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        function renderApplicationSummary(data) {
+            const summary = document.getElementById('applicationSummary');
+
+            if (!data.analiz || data.analiz.error) {
+                summary.innerHTML = `
+                    <div class="alert alert-warning">
+                        <i class="bi bi-info-circle"></i>
+                        Bu başvuru henüz analiz edilmemiş veya hata aldı.
+                    </div>
+                    <div class="info-grid">
+                        <div class="info-card">
+                            <div class="info-label">Takip No</div>
+                            <div class="info-value"><strong>${data.takip_no}</strong></div>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            const analiz = data.analiz;
+            const basvuru = analiz.basvuru_bilgileri;
+            const basvuran = analiz.basvuran;
+
+            summary.innerHTML = `
+                <div class="info-grid">
+                    <div class="info-card">
+                        <div class="info-label">Takip No</div>
+                        <div class="info-value"><strong>${basvuru.takip_no}</strong></div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-label">Başvuru Tarihi</div>
+                        <div class="info-value">${basvuru.basvuru_tarihi || '-'}</div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-label">Başvuran Ad Soyad</div>
+                        <div class="info-value"><strong>${basvuran.ad} ${basvuran.soyad}</strong></div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-label">TC Kimlik No</div>
+                        <div class="info-value">${basvuran.tc_kimlik_no || '-'}</div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-label">Telefon</div>
+                        <div class="info-value">${basvuran.telefon || '-'}</div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-label">Email</div>
+                        <div class="info-value">${basvuran.email || '-'}</div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-label">Başvuru Türü</div>
+                        <div class="info-value"><span class="badge bg-info">${basvuru.basvuru_turu}</span></div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-label">Başvurulan Alan</div>
+                        <div class="info-value"><span class="badge bg-primary">${basvuru.basvurulan_alan}</span></div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderTablolar(data) {
+            if (!data.analiz || !data.analiz.tablolar) {
+                return;
+            }
+
+            document.getElementById('tablolarSection').style.display = 'block';
+            const container = document.getElementById('tablolarContainer');
+            const tablolar = data.analiz.tablolar;
+
+            let html = '';
+
+            // Tablo sırası
+            const tabloSirasi = [
+                'tablo1_temel_bilgiler',
+                'tablo2_basvurulan_sektorler',
+                'tablo3_sektor_tecrubesi',
+                'tablo4_adli_sicil',
+                'tablo5_sektor_belge_durumu',
+                'tablo6_proje_yayin',
+                'tablo7_mezuniyet',
+                'tablo8_sonuc'
+            ];
+
+            tabloSirasi.forEach(key => {
+                if (!tablolar[key]) return;
+
+                const tablo = tablolar[key];
+                const statusClass = tablo.validation_status;
+                const statusEmoji = statusClass === 'green' ? '✅' :
+                                  statusClass === 'red' ? '❌' :
+                                  statusClass === 'yellow' ? '⚠️' :
+                                  statusClass === 'pending' ? '⏸️' : '⏭️';
+
+                html += `
+                    <div class="tablo-card ${statusClass}">
+                        <div class="tablo-title">
+                            <span>${statusEmoji}</span>
+                            <span>${tablo.tablo_adi}</span>
+                            <span class="validation-badge ${statusClass} ms-auto">${tablo.validation_status.toUpperCase()}</span>
+                        </div>
+                        <div class="alert-custom ${statusClass}">
+                            <strong>${tablo.aciklama || statusClass}</strong>
+                        </div>
+                        ${key === 'tablo8_sonuc' ? renderTablo8Special(tablo) : renderTabloData(tablo, key)}
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function renderTablo8Special(tablo) {
+            if (!tablo.data) return '';
+
+            let html = '';
+
+            // Sistem notu (önemli!)
+            if (tablo.sistem_notu) {
+                html += `
+                    <div class="alert alert-info mb-3">
+                        <i class="bi bi-info-circle"></i> <strong>Sistem Notu:</strong><br>
+                        ${tablo.sistem_notu}
+                    </div>
+                `;
+            }
+
+            // Personel tarafından doldurulacak alanlar
+            html += `
+                <div class="category-section mb-3" style="background: #fff7ed; border: 2px solid #f97316;">
+                    <div class="category-title" style="color: #c2410c;">
+                        <i class="bi bi-pencil-square"></i> Personel Tarafından Doldurulacak Alanlar
+                    </div>
+                    <div class="alert alert-warning mb-0">
+                        <strong>Başvuru Sonucu:</strong> <em>(Personel "Onaylandı" veya "Reddedildi" yazacak)</em><br>
+                        <strong>Açıklama:</strong> <em>(Personel gerekçe yazacak)</em>
+                    </div>
+                </div>
+            `;
+
+            // Yardımcı bilgiler
+            if (tablo.data.yardimci_bilgiler) {
+                const yardimci = tablo.data.yardimci_bilgiler;
+
+                html += `
+                    <div class="category-section">
+                        <div class="category-title">
+                            <i class="bi bi-lightbulb"></i> Yardımcı Bilgiler (Personel İçin)
+                        </div>
+                `;
+
+                // Kritik eksikler
+                if (yardimci.kritik_eksikler && yardimci.kritik_eksikler.length > 0) {
+                    html += '<div class="alert alert-danger"><strong>❌ Kritik Eksikler:</strong><ul class="mb-0 mt-2">';
+                    yardimci.kritik_eksikler.forEach(eksik => {
+                        html += `<li>${eksik}</li>`;
+                    });
+                    html += '</ul></div>';
+                }
+
+                // Önemli uyarılar
+                if (yardimci.onemli_uyarilar && yardimci.onemli_uyarilar.length > 0) {
+                    html += '<div class="alert alert-warning"><strong>⚠️ Önemli Uyarılar:</strong><ul class="mb-0 mt-2">';
+                    yardimci.onemli_uyarilar.forEach(uyari => {
+                        html += `<li>${uyari}</li>`;
+                    });
+                    html += '</ul></div>';
+                }
+
+                // Skorlar
+                html += `
+                    <div class="info-grid mt-3">
+                        <div class="info-card">
+                            <div class="info-label">Tutarlılık Skoru</div>
+                            <div class="info-value">${yardimci.tutarlilik_skoru || 0}%</div>
+                        </div>
+                        <div class="info-card">
+                            <div class="info-label">Tamamlık Skoru</div>
+                            <div class="info-value">${yardimci.tamamlik_skoru || 0}%</div>
+                        </div>
+                        <div class="info-card">
+                            <div class="info-label">Genel Bilgi</div>
+                            <div class="info-value">${yardimci.genel_bilgi || '-'}</div>
+                        </div>
+                    </div>
+                `;
+
+                html += '</div>';
+            }
+
+            return html;
+        }
+
+        function renderTabloData(tablo, key) {
+            if (!tablo.data || tablo.validation_status === 'skip') {
+                return '';
+            }
+
+            let html = '<div class="info-grid">';
+
+            if (typeof tablo.data === 'object') {
+                for (const [k, v] of Object.entries(tablo.data)) {
+                    if (v === null || v === undefined) continue;
+                    if (k === 'yardimci_bilgiler') continue; // Tablo 8'de zaten gösterildi
+
+                    let displayValue = v;
+                    if (typeof v === 'object' && !Array.isArray(v)) {
+                        displayValue = JSON.stringify(v, null, 2);
+                    } else if (Array.isArray(v)) {
+                        displayValue = v.join(', ');
+                    } else if (typeof v === 'boolean') {
+                        displayValue = v ? '✓ Evet' : '✗ Hayır';
+                    }
+
+                    html += `
+                        <div class="info-card">
+                            <div class="info-label">${formatKey(k)}</div>
+                            <div class="info-value">${displayValue}</div>
+                        </div>
+                    `;
+                }
+            }
+
+            html += '</div>';
+            return html;
+        }
+
+        function renderAllDocuments(data) {
+            if (!data.analiz || !data.analiz.belgeler) {
+                return;
+            }
+
+            document.getElementById('allDocumentsSection').style.display = 'block';
+            const container = document.getElementById('allDocumentsContainer');
+            const belgeler = data.analiz.belgeler;
+            document.getElementById('documentCount').textContent = belgeler.length;
+
+            let html = '';
+
+            // Belgeleri kategorilere ayır
+            const categories = {
+                'ustyazi': { title: 'Üst Yazı / Başvuru Formu', icon: 'file-text', docs: [] },
+                'ozgecmis': { title: 'Özgeçmiş', icon: 'person-vcard', docs: [] },
+                'diploma': { title: 'Diploma', icon: 'mortarboard', docs: [] },
+                'sgk': { title: 'SGK Hizmet Dökümü', icon: 'clipboard-data', docs: [] },
+                'adli_sicil': { title: 'Adli Sicil Kaydı', icon: 'shield-check', docs: [] },
+                'hitap': { title: 'Hitap Belgesi', icon: 'building', docs: [] },
+                'proje': { title: 'Akademik Projeler', icon: 'journal-text', docs: [] },
+                'sektor_belge': { title: 'Sektör İş Deneyim Belgesi', icon: 'briefcase', docs: [] },
+                'other': { title: 'Diğer Belgeler', icon: 'file-earmark', docs: [] }
+            };
+
+            belgeler.forEach(belge => {
+                const tipLower = (belge.belge_tipi || '').toLowerCase();
+                let category = 'other';
+
+                if (tipLower.includes('ustyazi') || tipLower.includes('üst yazı') || tipLower.includes('başvuru formu')) {
+                    category = 'ustyazi';
+                } else if (tipLower.includes('özgeçmiş') || tipLower.includes('cv')) {
+                    category = 'ozgecmis';
+                } else if (tipLower.includes('diploma')) {
+                    category = 'diploma';
+                } else if (tipLower.includes('sgk') || tipLower.includes('sigorta')) {
+                    category = 'sgk';
+                } else if (tipLower.includes('adli') || tipLower.includes('sicil') || tipLower.includes('sabıka')) {
+                    category = 'adli_sicil';
+                } else if (tipLower.includes('hitap')) {
+                    category = 'hitap';
+                } else if (tipLower.includes('proje')) {
+                    category = 'proje';
+                } else if (tipLower.includes('sektör') || tipLower.includes('endüstri') || tipLower.includes('iş deneyim')) {
+                    category = 'sektor_belge';
+                }
+
+                categories[category].docs.push(belge);
+            });
+
+            // Kategorileri render et
+            for (const [key, cat] of Object.entries(categories)) {
+                if (cat.docs.length === 0) continue;
+
+                html += `
+                    <div class="category-section">
+                        <div class="category-title">
+                            <i class="bi bi-${cat.icon}"></i> ${cat.title} (${cat.docs.length})
+                        </div>
+                `;
+
+                cat.docs.forEach(belge => {
+                    const statusBadge = belge.durum === 'basarili' ?
+                        '<span class="document-badge success"><i class="bi bi-check-circle-fill"></i> Başarılı</span>' :
+                        '<span class="document-badge danger"><i class="bi bi-x-circle-fill"></i> Hata</span>';
+
+                    html += `
+                        <div class="data-item">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <div class="data-label">
+                                        <i class="bi bi-file-earmark-pdf"></i> ${belge.belge_adi}
+                                    </div>
+                                    <small class="text-muted">${belge.belge_tipi}</small>
+                                </div>
+                                <div>
+                                    ${statusBadge}
+                                </div>
+                            </div>
+                    `;
+
+                    // PDF/Resim görüntüleme butonu
+                    if (belge.base64) {
+                        const isPdf = belge.belge_adi?.toLowerCase().endsWith('.pdf');
+                        const isImage = belge.belge_adi?.toLowerCase().match(/\.(jpg|jpeg|png|gif)$/);
+
+                        if (isPdf) {
+                            html += `<button class="btn btn-sm btn-outline-primary mt-2" onclick="viewPdfBase64('${belge.base64}', '${belge.belge_adi}')">
+                                <i class="bi bi-file-pdf"></i> PDF Görüntüle
+                            </button>`;
+                        } else if (isImage) {
+                            html += `<button class="btn btn-sm btn-outline-primary mt-2" onclick="viewImageBase64('${belge.base64}', '${belge.belge_adi}')">
+                                <i class="bi bi-image"></i> Resmi Göster
+                            </button>`;
+                        }
+                    }
+
+                    // Belgeden çıkarılan veriyi göster
+                    if (belge.veri && Object.keys(belge.veri).length > 0) {
+                        html += '<div class="mt-3"><strong class="text-primary">Çıkarılan Bilgiler:</strong></div>';
+                        html += '<div class="row g-2 mt-2">';
+
+                        for (const [k, v] of Object.entries(belge.veri)) {
+                            if (v === null || v === undefined || v === '') continue;
+
+                            let displayValue = v;
+                            if (typeof v === 'object' && !Array.isArray(v)) {
+                                displayValue = '<pre class="mb-0" style="font-size: 0.85rem;">' + JSON.stringify(v, null, 2) + '</pre>';
+                            } else if (Array.isArray(v)) {
+                                displayValue = v.length > 0 ? '<ul class="mb-0">' + v.map(item => '<li>' + JSON.stringify(item) + '</li>').join('') + '</ul>' : '[]';
+                            } else if (typeof v === 'boolean') {
+                                displayValue = v ? '<span class="text-success">✓ Evet</span>' : '<span class="text-danger">✗ Hayır</span>';
+                            }
+
+                            html += `
+                                <div class="col-md-6 col-lg-4">
+                                    <div style="background: white; padding: 10px; border-radius: 5px; border: 1px solid #e5e7eb;">
+                                        <small class="text-muted d-block" style="font-weight: 600;">${formatKey(k)}</small>
+                                        <div class="mt-1">${displayValue}</div>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                        html += '</div>';
+                    }
+
+                    html += '</div>';
+                });
+
+                html += '</div>';
+            }
+
+            container.innerHTML = html;
+        }
+
+        function renderEligibility(data) {
+            if (!data.analiz || !data.analiz.uygunluk) {
+                return;
+            }
+
+            document.getElementById('eligibilitySection').style.display = 'block';
+            const panel = document.getElementById('eligibilityPanel');
+            const uygunluk = data.analiz.uygunluk;
+
+            let html = `
+                <div class="alert alert-info mb-4">
+                    <i class="bi bi-info-circle"></i> <strong>Not:</strong>
+                    ${uygunluk.sistem_notu || 'Bu bilgiler sadece personel için yardımcı bilgilerdir. Hiçbir şekilde otomatik karar verilmemiştir.'}
+                </div>
+            `;
+
+            // Genel Bilgi Özeti (karar değil!)
+            if (uygunluk.genel_bilgi_ozeti) {
+                html += `
+                    <div class="alert alert-secondary mb-4">
+                        <strong>📋 Genel Bilgi Özeti:</strong><br>
+                        ${uygunluk.genel_bilgi_ozeti}
+                    </div>
+                `;
+            }
+
+            html += '<div class="info-grid">';
+
+            // Adli Sicil Durumu
+            if (uygunluk.adli_sicil_durumu) {
+                const adliSicil = uygunluk.adli_sicil_durumu;
+                html += `
+                    <div class="info-card">
+                        <div class="info-label"><i class="bi bi-shield-check"></i> Adli Sicil Durumu</div>
+                        <div class="info-value">
+                            ${adliSicil.sabika_kaydi === null ?
+                                '<span class="text-warning">⚠️ Belge Bulunamadı</span>' :
+                                adliSicil.sabika_kaydi === false ?
+                                '<span class="text-success"><i class="bi bi-check-circle-fill"></i> Temiz</span>' :
+                                '<span class="text-danger"><i class="bi bi-x-circle-fill"></i> Kayıt Var</span>'}
+                            ${adliSicil.yuz_kizartici_suc ? '<br><span class="text-danger">❌ Yüz Kızartıcı Suç Var</span>' : ''}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Eğitim Durumu
+            if (uygunluk.egitim_durumu) {
+                const egitim = uygunluk.egitim_durumu;
+                html += `
+                    <div class="info-card">
+                        <div class="info-label"><i class="bi bi-mortarboard"></i> Eğitim Durumu</div>
+                        <div class="info-value">
+                            ${egitim.uygun_seviye === null ?
+                                '<span class="text-warning">⚠️ Bilgi Bulunamadı</span>' :
+                                egitim.uygun_seviye ?
+                                '<span class="text-success"><i class="bi bi-check-circle-fill"></i> Uygun Seviye</span>' :
+                                '<span class="text-danger"><i class="bi bi-x-circle-fill"></i> Yetersiz</span>'}
+                            ${egitim.en_yuksek_egitim ? `<br><small class="text-muted">${egitim.en_yuksek_egitim}</small>` : ''}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Deneyim Durumu
+            if (uygunluk.deneyim_durumu) {
+                const deneyim = uygunluk.deneyim_durumu;
+                html += `
+                    <div class="info-card">
+                        <div class="info-label"><i class="bi bi-briefcase"></i> Deneyim Durumu</div>
+                        <div class="info-value">
+                            ${deneyim.yeterli ?
+                                '<span class="text-success"><i class="bi bi-check-circle-fill"></i> Yeterli</span>' :
+                                '<span class="text-warning">⚠️ Kontrol Edilmeli</span>'}
+                            ${deneyim.detay ? `<br><small class="text-muted">${deneyim.detay}</small>` : ''}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Belge Tutarlılığı
+            if (uygunluk.belge_tutarliligi) {
+                const tutarlilik = uygunluk.belge_tutarliligi;
+                html += `
+                    <div class="info-card">
+                        <div class="info-label"><i class="bi bi-files"></i> Belge Tutarlılığı</div>
+                        <div class="info-value">
+                            ${tutarlilik.durum === 'TUTARLI' ?
+                                '<span class="text-success"><i class="bi bi-check-circle-fill"></i> Tutarlı</span>' :
+                                '<span class="text-warning">⚠️ Tutarsızlık Var</span>'}
+                            ${tutarlilik.uyarilar && tutarlilik.uyarilar.length > 0 ?
+                                `<br><small class="text-muted">${tutarlilik.uyarilar.length} uyarı</small>` : ''}
+                        </div>
+                    </div>
+                `;
+            }
+
+            html += '</div>';
+
+            panel.innerHTML = html;
+        }
+
+        function renderValidation(data) {
+            if (!data.analiz || !data.analiz.validation) {
+                return;
+            }
+
+            document.getElementById('validationSection').style.display = 'block';
+            const panel = document.getElementById('validationPanel');
+            const validation = data.analiz.validation;
+            const requirements = data.analiz.requirements;
+
+            let html = '';
+
+            // Validation sonuçları
+            if (validation) {
+                const validClass = validation.valid ? 'success' : 'danger';
+                html += `
+                    <div class="alert-custom ${validClass}">
+                        <h6><i class="bi bi-shield-check"></i> Belgeler Arası Tutarlılık</h6>
+                        <p class="mb-2"><strong>Tutarlılık Skoru:</strong> %${validation.consistency_score || 0}</p>
+                        <p class="mb-0"><strong>Durum:</strong> ${validation.valid ? 'Tutarlı' : 'Tutarsızlık Tespit Edildi'}</p>
+                    </div>
+                `;
+
+                if (validation.errors && validation.errors.length > 0) {
+                    html += '<div class="category-section"><div class="category-title text-danger">❌ Tutarsızlık Hataları</div><ul class="mb-0">';
+                    validation.errors.forEach(err => {
+                        html += `<li>${err}</li>`;
+                    });
+                    html += '</ul></div>';
+                }
+
+                if (validation.warnings && validation.warnings.length > 0) {
+                    html += '<div class="category-section"><div class="category-title text-warning">⚠️ Uyarılar</div><ul class="mb-0">';
+                    validation.warnings.forEach(warn => {
+                        html += `<li>${warn}</li>`;
+                    });
+                    html += '</ul></div>';
+                }
+            }
+
+            // Requirements sonuçları
+            if (requirements) {
+                const reqClass = requirements.valid ? 'success' : 'danger';
+                html += `
+                    <div class="alert-custom ${reqClass} mt-3">
+                        <h6><i class="bi bi-files"></i> Gerekli Belgeler</h6>
+                        <p class="mb-2"><strong>Tamamlık Skoru:</strong> %${requirements.completeness_score || 0}</p>
+                        <p class="mb-0"><strong>Durum:</strong> ${requirements.valid ? 'Tüm Belgeler Mevcut' : 'Eksik Belge Var'}</p>
+                    </div>
+                `;
+
+                if (requirements.errors && requirements.errors.length > 0) {
+                    html += '<div class="category-section"><div class="category-title text-danger">❌ Eksik Belgeler</div><ul class="mb-0">';
+                    requirements.errors.forEach(err => {
+                        html += `<li>${err}</li>`;
+                    });
+                    html += '</ul></div>';
+                }
+
+                if (requirements.warnings && requirements.warnings.length > 0) {
+                    html += '<div class="category-section"><div class="category-title text-warning">⚠️ Belge Uyarıları</div><ul class="mb-0">';
+                    requirements.warnings.forEach(warn => {
+                        html += `<li>${warn}</li>`;
+                    });
+                    html += '</ul></div>';
+                }
+            }
+
+            panel.innerHTML = html;
+        }
+
+        function formatKey(key) {
+            return key
+                .replace(/_/g, ' ')
+                .replace(/\b\w/g, l => l.toUpperCase())
+                .replace(/Tc /g, 'TC ')
+                .replace(/Sgk/g, 'SGK')
+                .replace(/Apa/g, 'APA');
+        }
+
+        function viewPdfBase64(base64, fileName) {
+            const blob = base64ToBlob(base64, 'application/pdf');
+            const url = URL.createObjectURL(blob);
+            window.open(url, '_blank');
+        }
+
+        function viewImageBase64(base64, fileName) {
+            const modal = document.createElement('div');
+            modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:9999;display:flex;align-items:center;justify-content:center;';
+            modal.innerHTML = `
+                <div style="max-width:90%;max-height:90%;overflow:auto;text-align:center;">
+                    <div style="background:white;padding:10px;border-radius:8px 8px 0 0;">
+                        <strong>${fileName}</strong>
+                        <button onclick="this.closest('div').parentElement.parentElement.remove()" style="float:right;border:none;background:transparent;font-size:24px;cursor:pointer;">&times;</button>
+                    </div>
+                    <img src="data:image/jpeg;base64,${base64}" style="max-width:100%;max-height:calc(90vh - 60px);"/>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            modal.onclick = (e) => { if(e.target === modal) modal.remove(); };
+        }
+
+        function base64ToBlob(base64, mimeType = 'application/octet-stream') {
+            const byteCharacters = atob(base64);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            return new Blob([byteArray], { type: mimeType });
+        }
+    </script>
+</body>
+</html>

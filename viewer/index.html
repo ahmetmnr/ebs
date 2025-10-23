@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSB eBasvuru - Belge Görüntüleyici</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .main-container {
+            padding: 20px;
+        }
+
+        .header-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .header-card h1 {
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .stats-row {
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            height: 100%;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        .stat-card i {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .stat-card .number {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 10px 0;
+        }
+
+        .stat-card .label {
+            color: #666;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .content-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+
+        .table-card {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .detail-panel {
+            max-height: calc(100vh - 300px);
+            overflow-y: auto;
+        }
+
+        .detail-panel::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .detail-panel::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .detail-panel::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 10px;
+        }
+
+        .info-card {
+            background: var(--primary-gradient);
+            color: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .info-item {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 15px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        .info-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            opacity: 0.9;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .info-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .section-header {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0 15px 0;
+            font-weight: 600;
+            color: #667eea;
+            border-left: 4px solid #667eea;
+        }
+
+        .badge-lg {
+            padding: 8px 15px;
+            font-size: 0.9rem;
+        }
+
+        .experience-card {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+        }
+
+        .document-badge {
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin: 5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-gradient {
+            background: var(--primary-gradient);
+            border: none;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .btn-gradient:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            color: white;
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: rgba(102, 126, 234, 0.05);
+            cursor: pointer;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+
+        .modal-header {
+            background: var(--primary-gradient);
+            color: white;
+        }
+
+        .json-viewer {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+
+        .json-key {
+            color: #0284c7;
+            font-weight: 600;
+        }
+
+        .json-string {
+            color: #059669;
+        }
+
+        .json-number {
+            color: #d97706;
+        }
+
+        .json-boolean {
+            color: #dc2626;
+            font-weight: 600;
+        }
+
+        .loading-spinner {
+            text-align: center;
+            padding: 40px;
+        }
+
+        @media (max-width: 768px) {
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid main-container">
+        <!-- Header -->
+        <div class="header-card">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1><i class="bi bi-file-earmark-text"></i> CSB eBasvuru Görüntüleyici</h1>
+                    <p class="text-muted mb-0">Başvuru belgelerini ve çıkarılan verileri inceleyin</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <button class="btn btn-gradient me-2" onclick="refreshData()">
+                        <i class="bi bi-arrow-clockwise"></i> Yenile
+                    </button>
+                    <button class="btn btn-outline-primary" onclick="showStats()">
+                        <i class="bi bi-bar-chart"></i> İstatistikler
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats Row -->
+            <div class="row stats-row g-3" id="statsRow">
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <i class="bi bi-folder text-primary"></i>
+                        <div class="number text-primary" id="statToplam">0</div>
+                        <div class="label">Analiz Edilmiş</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <i class="bi bi-check-circle text-success"></i>
+                        <div class="number text-success" id="statUygun">0</div>
+                        <div class="label">Başarılı</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <i class="bi bi-hourglass-split text-warning"></i>
+                        <div class="number text-warning" id="statKosullu">0</div>
+                        <div class="label">Bekleyen</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <i class="bi bi-x-circle text-danger"></i>
+                        <div class="number text-danger" id="statUygunDegil">0</div>
+                        <div class="label">Hatalı</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Applications List -->
+            <div class="col-lg-5 col-xl-4">
+                <div class="content-card">
+                    <h5 class="mb-3"><i class="bi bi-list-ul"></i> Başvuru Listesi</h5>
+                    <div class="table-card">
+                        <table class="table table-hover" id="applicationsTable">
+                            <tbody>
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted">
+                                        <div class="loading-spinner">
+                                            <div class="spinner-border text-primary" role="status">
+                                                <span class="visually-hidden">Yükleniyor...</span>
+                                            </div>
+                                            <p class="mt-2">Başvurular yükleniyor...</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Application Details -->
+            <div class="col-lg-7 col-xl-8">
+                <div class="content-card">
+                    <h5 class="mb-3">
+                        <i class="bi bi-info-circle"></i> Başvuru Detayları
+                        <button class="btn btn-sm btn-gradient float-end" id="downloadBtn" onclick="downloadJSON()" style="display: none;">
+                            <i class="bi bi-download"></i> JSON İndir
+                        </button>
+                    </h5>
+                    <div class="detail-panel" id="detailPanel">
+                        <div class="text-center text-muted py-5">
+                            <i class="bi bi-inbox" style="font-size: 4rem; opacity: 0.3;"></i>
+                            <h5 class="mt-3">Başvuru Seçilmedi</h5>
+                            <p>Lütfen listeden bir başvuru seçin</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        let currentData = null;
+
+        // Sayfa yüklendiğinde
+        document.addEventListener('DOMContentLoaded', function() {
+            loadApplications();
+            loadStats();
+        });
+
+        async function loadApplications() {
+            try {
+                const response = await fetch('/api/applications');
+                const applications = await response.json();
+
+                const tbody = document.querySelector('#applicationsTable tbody');
+
+                if (applications.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="3" class="text-center text-muted py-4">
+                                <i class="bi bi-inbox" style="font-size: 3rem; opacity: 0.3;"></i>
+                                <p class="mt-2">Henüz başvuru yok</p>
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                tbody.innerHTML = applications.map(app => {
+                    const statusClass = app.analiz_durumu === 'basarili' ? 'text-success' : 'text-danger';
+                    const statusIcon = app.analiz_durumu === 'basarili' ? 'bi-check-circle-fill' : 'bi-x-circle-fill';
+                    const statusBadge = app.analiz_durumu === 'basarili' ? 'bg-success' : 'bg-danger';
+                    const statusText = app.analiz_durumu === 'basarili' ? 'Başarılı' : 'Hatalı';
+
+                    return `
+                        <tr onclick="window.location.href='/degerlendirme.html?takip_no=${app.takip_no}&v=2'" style="cursor: pointer;">
+                            <td style="width: 50px;">
+                                <i class="bi ${statusIcon} ${statusClass}" style="font-size: 1.5rem;"></i>
+                            </td>
+                            <td>
+                                <strong>${app.takip_no}</strong><br>
+                                <small class="text-muted">
+                                    <i class="bi bi-calendar3"></i> ${app.analiz_tarihi ? new Date(app.analiz_tarihi).toLocaleString('tr-TR') : '-'}
+                                </small>
+                            </td>
+                            <td class="text-end">
+                                <span class="badge ${statusBadge} badge-lg">${statusText}</span>
+                                <i class="bi bi-chevron-right ms-2"></i>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+
+            } catch (error) {
+                console.error('Başvurular yüklenemedi:', error);
+            }
+        }
+
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/stats');
+                const stats = await response.json();
+
+                document.getElementById('statToplam').textContent = stats.analiz_edilmis || 0;
+                document.getElementById('statUygun').textContent = stats.analiz_basarili || 0;
+                document.getElementById('statKosullu').textContent = stats.analiz_bekleyen || 0;
+                document.getElementById('statUygunDegil').textContent = stats.analiz_hatali || 0;
+
+            } catch (error) {
+                console.error('İstatistikler yüklenemedi:', error);
+            }
+        }
+
+        async function loadApplication(takipNo) {
+            try {
+                const response = await fetch(`/api/application/${takipNo}`);
+                currentData = await response.json();
+
+                displayApplicationDetails(currentData);
+                document.getElementById('downloadBtn').style.display = 'inline-block';
+
+            } catch (error) {
+                console.error('Başvuru yüklenemedi:', error);
+            }
+        }
+
+        function displayApplicationDetails(data) {
+            const panel = document.getElementById('detailPanel');
+
+            // Eğer analiz edilmemiş ham veri ise
+            if (data.raw_api_data) {
+                const rawData = data.raw_api_data;
+                panel.innerHTML = `
+                    <div class="alert alert-info">
+                        <h5><i class="bi bi-info-circle"></i> Bu başvuru henüz analiz edilmemiş</h5>
+                        <p>Veritabanından ham API verisi gösteriliyor. Analiz yapmak için <code>scripts/analyze_from_db.py</code> scriptini çalıştırın.</p>
+                    </div>
+
+                    <div class="info-card">
+                        <h4><i class="bi bi-file-earmark-text"></i> ${data.takip_no}</h4>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <div class="info-label">Takip No</div>
+                                <div class="info-value">${rawData.takipNo || data.takip_no}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Hizmet</div>
+                                <div class="info-value">${rawData.hizmetAdi || '-'}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Başvuru Tarihi</div>
+                                <div class="info-value">${rawData.basvuruTarihi || '-'}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Durum</div>
+                                <div class="info-value">${rawData.basvuruDurum || '-'}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Başvuran</div>
+                                <div class="info-value">${rawData.basvuruYapanAd || ''} ${rawData.basvuruYapanSoyad || ''}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Belgeler</div>
+                                <div class="info-value">${rawData.basvuruBelgeListesi ? rawData.basvuruBelgeListesi.length : 0} adet</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section-header"><i class="bi bi-code-square"></i> Ham API Verisi (JSON)</div>
+                    <div class="json-viewer">
+                        <pre>${JSON.stringify(rawData, null, 2)}</pre>
+                    </div>
+                `;
+                return;
+            }
+
+            // Eğer basvuru_bilgileri yoksa (yeni API formatı), hata göster
+            if (!data.basvuru_bilgileri) {
+                panel.innerHTML = `
+                    <div class="alert alert-warning">
+                        <h5><i class="bi bi-exclamation-triangle"></i> Uyumsuz Veri Formatı</h5>
+                        <p>Bu başvuru verisi eski OCR analiz formatında değil. Lütfen <code>scripts/analyze_from_db.py</code> ile analiz yapın.</p>
+                        <pre style="max-height: 400px; overflow-y: auto;">${JSON.stringify(data, null, 2)}</pre>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+
+            // Başvuru kartı
+            html += `
+                <div class="info-card">
+                    <h4><i class="bi bi-file-earmark-text"></i> ${data.basvuru_bilgileri.takip_no}</h4>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">Evrak Kayıt No</div>
+                            <div class="info-value">${data.basvuru_bilgileri.takip_no}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Evrak Tarihi</div>
+                            <div class="info-value">${data.basvuru_bilgileri.basvuru_tarihi || '-'}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Başvuru Türü</div>
+                            <div class="info-value">${data.basvuru_bilgileri.basvuru_turu}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Başvurulan Alan</div>
+                            <div class="info-value">${data.basvuru_bilgileri.basvurulan_alan}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Durum</div>
+                            <div class="info-value">
+                                <span class="status-dot ${getStatusBg(data.uygunluk.genel_degerlendirme)}"></span>
+                                ${data.uygunluk.genel_degerlendirme}
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Hizmet</div>
+                            <div class="info-value">${data.basvuru_bilgileri.hizmet_adi}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Başvuran
+            html += renderSection('👤 Başvuran Bilgileri', {
+                'Ad Soyad': `${data.basvuran.ad} ${data.basvuran.soyad}`,
+                'TC Kimlik No': data.basvuran.tc_kimlik_no || '-',
+                'Doğum Tarihi': data.basvuran.dogum_tarihi || '-',
+                'Telefon': data.basvuran.telefon || '-',
+                'Email': data.basvuran.email || '-'
+            });
+
+            // Başvurulan sektörler
+            const sektorler = Object.entries(data.basvurulan_sektorler)
+                .filter(([_, value]) => value)
+                .map(([key, _]) => key.charAt(0).toUpperCase() + key.slice(1))
+                .join(', ') || 'Belirtilmemiş';
+
+            html += `<div class="section-header"><i class="bi bi-briefcase"></i> Başvurulan Sektörler</div>`;
+            html += `<div class="alert alert-info"><strong>${sektorler}</strong></div>`;
+
+            // Eğitim
+            html += renderSection('🎓 Eğitim Durumu', {
+                'En Yüksek Eğitim': data.egitim_durumu.en_yuksek_egitim || '-',
+                'Üniversite': data.egitim_durumu.universite || '-',
+                'Bölüm': data.egitim_durumu.bolum || '-',
+                'Mezuniyet Yılı': data.egitim_durumu.mezuniyet_yili || '-'
+            });
+
+            // İş deneyimi
+            html += `<div class="section-header"><i class="bi bi-briefcase-fill"></i> İş Deneyimi (${data.is_deneyimi.toplam_sure_yil} yıl)</div>`;
+            html += `<p><strong>Toplam:</strong> ${data.is_deneyimi.toplam_sure_yil} yıl (${data.is_deneyimi.toplam_sure_gun} gün)</p>`;
+
+            data.is_deneyimi.detaylar.forEach((exp, i) => {
+                html += `
+                    <div class="experience-card">
+                        <h6><i class="bi bi-building"></i> ${exp.sirket}</h6>
+                        <p class="mb-1"><strong>Pozisyon:</strong> ${exp.pozisyon}</p>
+                        <p class="mb-1"><strong>Sektör:</strong> <span class="badge bg-primary">${exp.sektor}</span></p>
+                        <p class="mb-1"><strong>Süre:</strong> ${exp.baslangic || '-'} - ${exp.bitis || 'Devam ediyor'} (${(exp.sure_gun / 365).toFixed(1)} yıl)</p>
+                        ${exp.cevre_ile_ilgili ? '<span class="badge bg-success"><i class="bi bi-check-circle"></i> Çevre ile ilgili</span>' : ''}
+                    </div>
+                `;
+            });
+
+            // Sektör dağılımı
+            if (data.sektor_dagilimi.length > 0) {
+                html += `<div class="section-header"><i class="bi bi-pie-chart"></i> Sektör Dağılımı</div>`;
+                html += '<div class="row g-2">';
+                data.sektor_dagilimi.forEach(sektor => {
+                    html += `
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h6 class="card-title">${sektor.sektor_adi}</h6>
+                                    <p class="mb-0">
+                                        <strong>${sektor.sure_yil} yıl</strong> (${sektor.oran.toFixed(1)}%)
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            }
+
+            // Adli Sicil Bilgileri
+            if (data.adli_sicil) {
+                html += `<div class="section-header"><i class="bi bi-shield-check"></i> Adli Sicil Bilgileri</div>`;
+                html += '<div class="card mb-3">';
+                html += '<div class="card-body">';
+
+                const sabika = data.adli_sicil.sabika_kaydi;
+                const sabikaText = sabika === true ? 'Var' : sabika === false ? 'Yok' : 'Belirtilmemiş';
+                const sabikaBadge = sabika === true ? 'bg-danger' : sabika === false ? 'bg-success' : 'bg-secondary';
+
+                html += `<p><strong>Adli Sicil Kaydı:</strong> <span class="badge ${sabikaBadge}">${sabikaText}</span></p>`;
+
+                if (data.adli_sicil.belge_no) {
+                    html += `<p><strong>Adli Sicil Kaydı Kodu:</strong> ${data.adli_sicil.belge_no}</p>`;
+                }
+
+                if (data.adli_sicil.aciklama) {
+                    html += `<p><strong>Açıklama:</strong> ${data.adli_sicil.aciklama}</p>`;
+                }
+
+                html += '</div></div>';
+            }
+
+            // Sektör Belge Durumu
+            if (data.sektor_belge_durumu) {
+                html += `<div class="section-header"><i class="bi bi-file-earmark-check"></i> Başvurulan Sektörde Çalıştığını Kanıtlayan Doküman Eki Bilgileri</div>`;
+                html += '<div class="row g-2">';
+
+                const sektorIsimleri = {
+                    'enerji': 'Enerji',
+                    'metal': 'Metal',
+                    'mineral': 'Mineral',
+                    'kimya': 'Kimya',
+                    'atik': 'Atık',
+                    'diger': 'Diğer'
+                };
+
+                Object.entries(sektorIsimleri).forEach(([key, label]) => {
+                    const varMi = data.sektor_belge_durumu[key];
+                    const badgeClass = varMi ? 'bg-success' : 'bg-secondary';
+                    const icon = varMi ? 'check-circle-fill' : 'x-circle-fill';
+                    const durum = varMi ? 'Var' : 'Yok';
+
+                    html += `
+                        <div class="col-md-4 col-sm-6">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <h6 class="card-title mb-2">${label}</h6>
+                                    <span class="badge ${badgeClass}">
+                                        <i class="bi bi-${icon}"></i> ${durum}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                html += '</div>';
+            }
+
+            // Proje ve yayınlar
+            if (data.projeler_ve_yayinlar.toplam_sayi > 0) {
+                html += `<div class="section-header"><i class="bi bi-journal-text"></i> Projeler ve Yayınlar</div>`;
+                html += `<p><strong>Toplam:</strong> ${data.projeler_ve_yayinlar.toplam_sayi} adet</p>`;
+                data.projeler_ve_yayinlar.liste.forEach(proje => {
+                    html += `
+                        <div class="card mb-2">
+                            <div class="card-body">
+                                <span class="badge bg-secondary">${proje.tip}</span>
+                                <h6 class="mt-2">${proje.baslik}</h6>
+                                <p class="mb-0">${proje.aciklama}</p>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            // Validation Sonuçları
+            if (data.validation) {
+                const validClass = data.validation.valid ? 'success' : 'danger';
+                const validIcon = data.validation.valid ? 'check-circle' : 'x-circle';
+
+                html += `<div class="section-header"><i class="bi bi-shield-check"></i> Belge Tutarlılık Kontrolü</div>`;
+                html += `<div class="alert alert-${validClass}">`;
+                html += `<h6><i class="bi bi-${validIcon}"></i> Tutarlılık Skoru: %${data.validation.consistency_score}</h6>`;
+
+                if (data.validation.errors && data.validation.errors.length > 0) {
+                    html += `<div class="mt-3"><strong>❌ HATALAR:</strong><ul class="mb-0">`;
+                    data.validation.errors.forEach(error => {
+                        html += `<li class="text-danger">${error}</li>`;
+                    });
+                    html += `</ul></div>`;
+                }
+
+                if (data.validation.warnings && data.validation.warnings.length > 0) {
+                    html += `<div class="mt-3"><strong>⚠️ UYARILAR:</strong><ul class="mb-0">`;
+                    data.validation.warnings.forEach(warning => {
+                        html += `<li class="text-warning">${warning}</li>`;
+                    });
+                    html += `</ul></div>`;
+                }
+
+                html += `</div>`;
+            }
+
+            // Uygunluk
+            const uygunlukClass = data.uygunluk.genel_degerlendirme.includes('UYGUN DEĞİL') ? 'danger' :
+                                  data.uygunluk.genel_degerlendirme.includes('KOŞULLU') ? 'warning' : 'success';
+
+            html += `<div class="section-header"><i class="bi bi-check2-square"></i> Uygunluk Değerlendirmesi</div>`;
+            html += `<div class="alert alert-${uygunlukClass}">`;
+            html += `<h6><strong>${data.uygunluk.genel_degerlendirme}</strong></h6>`;
+            html += `<ul class="mb-0">`;
+            html += `<li>Adli Sicil: ${data.uygunluk.adli_sicil_temiz ? '<span class="text-success">✓ Temiz</span>' : '<span class="text-danger">✗ Kayıt var</span>'}</li>`;
+            html += `<li>Eğitim: ${data.uygunluk.egitim_uygun ? '<span class="text-success">✓ Uygun</span>' : '<span class="text-danger">✗ Yetersiz</span>'}</li>`;
+            html += `<li>Deneyim: ${data.uygunluk.deneyim_uygun ? '<span class="text-success">✓ Uygun</span>' : '<span class="text-danger">✗ Yetersiz</span>'}</li>`;
+            html += `</ul></div>`;
+
+            // Belgeler
+            html += `<div class="section-header"><i class="bi bi-files"></i> Belgeler (${data.belgeler.length})</div>`;
+            data.belgeler.forEach(belge => {
+                const badgeClass = belge.durum === 'basarili' ? 'bg-success' : 'bg-danger';
+                const belgeUrl = `/api/document/${currentData.basvuru_bilgileri.takip_no}/${belge.belge_adi}`;
+
+                html += `
+                    <span class="document-badge ${badgeClass}" style="cursor: pointer;" onclick="viewDocument('${belge.belge_adi}', '${belgeUrl}')">
+                        <i class="bi bi-file-earmark"></i>
+                        ${belge.belge_adi}
+                        <span class="badge bg-light text-dark ms-1">${belge.belge_tipi}</span>
+                        <i class="bi bi-eye ms-2"></i>
+                    </span>
+                `;
+            });
+
+            panel.innerHTML = html;
+        }
+
+        function renderSection(title, data) {
+            let html = `<div class="section-header">${title}</div>`;
+            html += '<div class="row g-2">';
+            for (const [key, value] of Object.entries(data)) {
+                html += `
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-body py-2">
+                                <small class="text-muted d-block">${key}</small>
+                                <strong>${value || '-'}</strong>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            html += '</div>';
+            return html;
+        }
+
+        function getStatusClass(status) {
+            if (status.includes('UYGUN DEĞİL')) return 'text-danger';
+            if (status.includes('KOŞULLU')) return 'text-warning';
+            return 'text-success';
+        }
+
+        function getStatusBg(status) {
+            if (status.includes('UYGUN DEĞİL')) return 'bg-danger';
+            if (status.includes('KOŞULLU')) return 'bg-warning';
+            return 'bg-success';
+        }
+
+        function getStatusIcon(status) {
+            if (status.includes('UYGUN DEĞİL')) return 'bi-x-circle-fill';
+            if (status.includes('KOŞULLU')) return 'bi-exclamation-triangle-fill';
+            return 'bi-check-circle-fill';
+        }
+
+        function getShortStatus(status) {
+            if (status.includes('UYGUN DEĞİL')) return 'Uygun Değil';
+            if (status.includes('KOŞULLU')) return 'Koşullu';
+            return 'Uygun';
+        }
+
+        function refreshData() {
+            loadApplications();
+            loadStats();
+        }
+
+        function downloadJSON() {
+            if (!currentData) return;
+
+            const blob = new Blob([JSON.stringify(currentData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `basvuru_${currentData.basvuru_bilgileri.takip_no}.json`;
+            a.click();
+        }
+
+        function showStats() {
+            alert('İstatistikler paneli üstte görünüyor');
+        }
+
+        function viewDocument(belgeAdi, belgeUrl) {
+            // Modal oluştur
+            const extension = belgeAdi.split('.').pop().toLowerCase();
+
+            let modalContent = '';
+
+            if (extension === 'pdf') {
+                modalContent = `
+                    <iframe src="${belgeUrl}" style="width: 100%; height: 80vh; border: none;"></iframe>
+                `;
+            } else if (['jpg', 'jpeg', 'png', 'gif'].includes(extension)) {
+                modalContent = `
+                    <img src="${belgeUrl}" style="max-width: 100%; height: auto;">
+                `;
+            } else {
+                modalContent = `
+                    <div class="alert alert-info">
+                        <p>Bu dosya türü önizlenemiyor.</p>
+                        <a href="${belgeUrl}" download="${belgeAdi}" class="btn btn-primary">
+                            <i class="bi bi-download"></i> İndir
+                        </a>
+                    </div>
+                `;
+            }
+
+            // Bootstrap modal oluştur
+            const modalHtml = `
+                <div class="modal fade" id="documentModal" tabindex="-1">
+                    <div class="modal-dialog modal-xl modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">
+                                    <i class="bi bi-file-earmark"></i> ${belgeAdi}
+                                </h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                ${modalContent}
+                            </div>
+                            <div class="modal-footer">
+                                <a href="${belgeUrl}" download="${belgeAdi}" class="btn btn-primary">
+                                    <i class="bi bi-download"></i> İndir
+                                </a>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Eski modalı kaldır
+            const oldModal = document.getElementById('documentModal');
+            if (oldModal) {
+                oldModal.remove();
+            }
+
+            // Yeni modalı ekle
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+            // Modalı göster
+            const modal = new bootstrap.Modal(document.getElementById('documentModal'));
+            modal.show();
+
+            // Modal kapandığında temizle
+            document.getElementById('documentModal').addEventListener('hidden.bs.modal', function() {
+                this.remove();
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,52 @@
+# Core Framework
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic==2.5.0
+pydantic-settings==2.1.0
+
+# HTTP Clients
+httpx==0.25.1
+requests==2.31.0
+
+# OCR & Document Processing
+easyocr==1.7.0
+pdf2image==1.16.3
+Pillow==10.1.0
+python-docx==1.1.0
+pypdf2==3.0.1
+pdfplumber==0.10.0
+
+# Database
+# sqlite3 is built-in for Python 3.x
+
+# Environment Variables
+python-dotenv==1.0.0
+
+# Utils
+python-dateutil==2.8.2
+python-multipart==0.0.6
+chardet==5.2.0
+
+# Retry Logic
+tenacity==8.2.3
+
+# CLI Tools (optional)
+click==8.1.7
+rich==13.5.0
+tqdm==4.66.0
+
+# Scheduler (for future use)
+apscheduler==3.10.4
+
+# Logging
+colorlog==6.8.0
+
+# Streamlit (for viewer)
+streamlit==1.28.0
+
+# Development
+pytest==7.4.3
+pytest-asyncio==0.21.1
+pytest-cov==4.1.0
+pytest-mock==3.11.1
+black==23.12.0

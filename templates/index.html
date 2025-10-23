@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yeşil Dönüşüm - Başvuru Analiz Sistemi</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body { background: #f8f9fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .header { background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); color: white; padding: 2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .stat-card { background: white; border-radius: 12px; padding: 20px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 20px; transition: transform 0.3s; }
+        .stat-card:hover { transform: translateY(-5px); }
+        .stat-card .number { font-size: 2rem; font-weight: bold; color: #3b82f6; }
+        .stat-card .label { color: #666; font-size: 0.9rem; text-transform: uppercase; }
+        .card { border: none; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 20px; }
+        .card-header { background: #f8fafc; border-bottom: 2px solid #e2e8f0; font-weight: 700; }
+        .basvuru-item { padding: 15px; border: 2px solid #e2e8f0; border-radius: 10px; margin-bottom: 10px; cursor: pointer; transition: all 0.3s; }
+        .basvuru-item:hover { border-color: #3b82f6; box-shadow: 0 5px 15px rgba(59, 130, 246, 0.2); background: #eff6ff; }
+        .belge-card { background: #f7fafc; padding: 20px; border-radius: 10px; margin-bottom: 20px; border-left: 5px solid #3b82f6; }
+        .belge-card h5 { color: #1e40af; margin-bottom: 15px; }
+        .data-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 10px; margin-top: 10px; }
+        .data-item { background: white; padding: 12px; border-radius: 8px; border-left: 3px solid #3b82f6; }
+        .data-item strong { display: block; color: #64748b; font-size: 0.85rem; margin-bottom: 5px; }
+        .data-item span { color: #1e293b; font-size: 1rem; }
+        .badge { padding: 6px 12px; border-radius: 6px; }
+        .json-toggle { background: #3b82f6; color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; margin-top: 10px; font-size: 0.9rem; }
+        .json-toggle:hover { background: #2563eb; }
+        .json-view { background: #1e293b; color: #e2e8f0; padding: 15px; border-radius: 8px; margin-top: 10px; overflow-x: auto; font-family: 'Courier New', monospace; font-size: 0.85rem; white-space: pre-wrap; display: none; }
+        .json-view.active { display: block; }
+        .loading { text-align: center; padding: 40px; color: #64748b; }
+        .back-btn { background: #64748b; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; margin-bottom: 20px; }
+        .back-btn:hover { background: #475569; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <h1><i class="bi bi-clipboard-check"></i> Yeşil Dönüşüm Başvuru Analiz Sistemi</h1>
+            <p class="mb-0 opacity-75">Belge Analiz ve Bilgi Çıkarım Sistemi - Chunk Bazlı Analiz</p>
+        </div>
+    </div>
+
+    <div class="container my-4">
+        <!-- İstatistikler -->
+        <div class="row" id="stats">
+            <div class="col-md-2"><div class="stat-card"><div class="number" id="stat-total">-</div><div class="label">Toplam Başvuru</div></div></div>
+            <div class="col-md-2"><div class="stat-card"><div class="number" id="stat-analiz">-</div><div class="label">Analiz Edilmiş</div></div></div>
+            <div class="col-md-2"><div class="stat-card"><div class="number text-success" id="stat-belge">-</div><div class="label">Başarılı Belge</div></div></div>
+            <div class="col-md-2"><div class="stat-card"><div class="number text-danger" id="stat-basarisiz">-</div><div class="label">Başarısız Belge</div></div></div>
+            <div class="col-md-2"><div class="stat-card"><div class="number text-warning" id="stat-bekleyen">-</div><div class="label">Bekleyen Belge</div></div></div>
+            <div class="col-md-2"><div class="stat-card"><div class="number" id="stat-chunk">-</div><div class="label">Toplam Chunk</div></div></div>
+        </div>
+
+        <!-- Ana İçerik -->
+        <div class="row">
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-header"><i class="bi bi-list"></i> Başvuru Listesi</div>
+                    <div class="card-body" style="max-height: 600px; overflow-y: auto;">
+                        <div id="basvuru-list"><div class="loading">Yükleniyor...</div></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-8">
+                <div id="list-view">
+                    <div class="card">
+                        <div class="card-body text-center py-5">
+                            <i class="bi bi-inbox" style="font-size: 4rem; opacity: 0.3;"></i>
+                            <h5 class="mt-3">Başvuru Seçilmedi</h5>
+                            <p>Sol taraftan bir başvuru seçin</p>
+                        </div>
+                    </div>
+                </div>
+                <div id="detail-view" style="display: none;">
+                    <button class="back-btn" onclick="showList()"><i class="bi bi-arrow-left"></i> Geri</button>
+                    <div id="detail-content"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentTakip = null;
+
+        // Sayfa yüklendiğinde
+        document.addEventListener('DOMContentLoaded', () => {
+            loadStats();
+            loadBasvurular();
+        });
+
+        async function loadStats() {
+            try {
+                const res = await fetch('/api/stats');
+                const data = await res.json();
+                document.getElementById('stat-total').textContent = data.toplam_basvuru.toLocaleString('tr-TR');
+                document.getElementById('stat-analiz').textContent = data.analiz_edilmis.toLocaleString('tr-TR');
+                document.getElementById('stat-belge').textContent = data.basarili_belge.toLocaleString('tr-TR');
+                document.getElementById('stat-basarisiz').textContent = data.basarisiz_belge.toLocaleString('tr-TR');
+                document.getElementById('stat-bekleyen').textContent = data.analiz_edilmemis_belge.toLocaleString('tr-TR');
+                document.getElementById('stat-chunk').textContent = data.toplam_chunk.toLocaleString('tr-TR');
+            } catch (e) {
+                console.error('Stats error:', e);
+            }
+        }
+
+        async function loadBasvurular() {
+            try {
+                const res = await fetch('/api/basvurular?limit=50');
+                const data = await res.json();
+                const list = document.getElementById('basvuru-list');
+
+                if (data.length === 0) {
+                    list.innerHTML = '<p class="text-center text-muted">Henüz analiz edilmiş başvuru yok</p>';
+                    return;
+                }
+
+                list.innerHTML = data.map(b => `
+                    <div class="basvuru-item" onclick="loadDetay('${b.takipNo}')">
+                        <strong>${b.takipNo}</strong><br>
+                        <small>${b.basvuruYapanAd} ${b.basvuruYapanSoyad}</small><br>
+                        <small class="text-muted">${b.analiz_edilmis}/${b.toplam_belge} belge analiz edildi</small>
+                    </div>
+                `).join('');
+            } catch (e) {
+                console.error('List error:', e);
+                document.getElementById('basvuru-list').innerHTML = '<p class="text-danger">Yüklenemedi</p>';
+            }
+        }
+
+        async function loadDetay(takip) {
+            currentTakip = takip;
+            document.getElementById('list-view').style.display = 'none';
+            document.getElementById('detail-view').style.display = 'block';
+
+            const content = document.getElementById('detail-content');
+            content.innerHTML = '<div class="loading">Yükleniyor...</div>';
+
+            try {
+                const res = await fetch(`/api/basvuru/${takip}`);
+                const data = await res.json();
+                renderDetay(data);
+            } catch (e) {
+                console.error('Detail error:', e);
+                content.innerHTML = '<div class="alert alert-danger">Yüklenemedi: ' + e.message + '</div>';
+            }
+        }
+
+        function renderDetay(data) {
+            const b = data.basvuru;
+            const belgeler = data.belgeler;
+
+            let html = `
+                <div class="card mb-3">
+                    <div class="card-header"><i class="bi bi-file-earmark-text"></i> Başvuru: ${b.takipNo}</div>
+                    <div class="card-body">
+                        <div class="data-grid">
+                            <div class="data-item"><strong>Takip No</strong><span>${b.takipNo}</span></div>
+                            <div class="data-item"><strong>Başvuran</strong><span>${b.basvuruYapanAd} ${b.basvuruYapanSoyad}</span></div>
+                            <div class="data-item"><strong>TC</strong><span>${b.basvuruYapanVatandasTC}</span></div>
+                            <div class="data-item"><strong>Tarih</strong><span>${new Date(b.basvuruTarihi).toLocaleString('tr-TR')}</span></div>
+                            <div class="data-item"><strong>Hizmet</strong><span>${b.hizmetAdi}</span></div>
+                            <div class="data-item"><strong>Durum</strong><span>${b.basvuruDurum}</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <h4><i class="bi bi-files"></i> Belgeler ve Analiz Sonuçları (${belgeler.length})</h4>
+            `;
+
+            belgeler.forEach((belge, idx) => {
+                // ANALİZ EDİLMEMİŞ BELGELER DE GÖSTERİLİR
+                const hasAnalysis = belge.log_id && belge.chunks && belge.chunks.length > 0;
+
+                let durum;
+                if (!hasAnalysis) {
+                    durum = '<span class="badge bg-warning">⚠ Analiz Edilmedi</span>';
+                } else if (belge.basarili) {
+                    durum = '<span class="badge bg-success">✓ Başarılı</span>';
+                } else {
+                    durum = '<span class="badge bg-danger">✗ Hatalı</span>';
+                }
+
+                html += `
+                    <div class="belge-card">
+                        <h5>
+                            <i class="bi bi-file-earmark-pdf"></i> ${belge.belgeAdi}
+                            ${durum}
+                            ${hasAnalysis ? `<span class="badge bg-info">${belge.chunk_sayisi} chunk</span>` : ''}
+                            ${hasAnalysis && belge.islem_suresi_sn ? `<span class="badge bg-secondary">${belge.islem_suresi_sn.toFixed(2)}s</span>` : ''}
+                            <button class="btn btn-sm btn-primary float-end" onclick="window.open('/api/belge/${belge.belgeId}', '_blank')">
+                                <i class="bi bi-eye"></i> Görüntüle
+                            </button>
+                        </h5>
+                `;
+
+                // Eğer analiz varsa chunk'ları göster
+                if (hasAnalysis) {
+                    belge.chunks.forEach((chunk, cidx) => {
+                        html += `
+                            <div class="mt-3">
+                                <h6>Chunk ${chunk.chunk_index} (${chunk.chunk_start}-${chunk.chunk_end})</h6>
+                                ${renderAnalysisData(belge.belgeTipi || belge.belgeAdi, chunk.data)}
+                                <button class="json-toggle" onclick="toggleJSON('json-${idx}-${cidx}')">Ham JSON Göster</button>
+                                <div class="json-view" id="json-${idx}-${cidx}">${JSON.stringify(chunk.data, null, 2)}</div>
+                            </div>
+                        `;
+                    });
+                } else {
+                    // Analiz yoksa bilgi göster
+                    html += `
+                        <div class="alert alert-warning mt-2">
+                            <i class="bi bi-info-circle"></i> Bu belge henüz analiz edilmedi.
+                            <br><small>Belge Tipi: <strong>${belge.belgeTipi || 'Bilinmiyor'}</strong></small>
+                            <br><small>Boyut: <strong>${(belge.belge_boyutu_bytes / 1024).toFixed(1)} KB</strong></small>
+                        </div>
+                    `;
+                }
+
+                html += '</div>';
+            });
+
+            document.getElementById('detail-content').innerHTML = html;
+        }
+
+        function renderAnalysisData(tip, data) {
+            if (!data) return '';
+
+            // CV/Özgeçmiş
+            if (tip.includes('CV') || tip.includes('Özgeçmiş')) {
+                return `
+                    <div class="data-grid">
+                        <div class="data-item"><strong>Ad Soyad</strong><span>${data.ad_soyad || 'N/A'}</span></div>
+                        <div class="data-item"><strong>Doğum Yılı</strong><span>${data.dogum_yili || 'N/A'}</span></div>
+                        <div class="data-item"><strong>Email</strong><span>${data.iletisim_email || 'N/A'}</span></div>
+                        <div class="data-item"><strong>Telefon</strong><span>${data.iletisim_telefon || 'N/A'}</span></div>
+                        <div class="data-item"><strong>Eğitim</strong><span>${data.egitim_seviyesi || 'N/A'}</span></div>
+                        <div class="data-item"><strong>Üniversite</strong><span>${data.mezun_universite || 'N/A'}</span></div>
+                        <div class="data-item"><strong>Bölüm</strong><span>${data.mezun_bolum || 'N/A'}</span></div>
+                        <div class="data-item"><strong>Mezuniyet</strong><span>${data.mezuniyet_yili || 'N/A'}</span></div>
+                        <div class="data-item"><strong>Deneyim</strong><span>${data.toplam_is_deneyimi_yil || 0} yıl ${data.toplam_is_deneyimi_ay || 0} ay</span></div>
+                        <div class="data-item"><strong>Enerji</strong><span>${data.tecrube_enerji || 0} yıl</span></div>
+                        <div class="data-item"><strong>Metal</strong><span>${data.tecrube_metal || 0} yıl</span></div>
+                        <div class="data-item"><strong>Kimya</strong><span>${data.tecrube_kimya || 0} yıl</span></div>
+                        <div class="data-item"><strong>Yeşil Dönüşüm</strong><span>${data.yeşil_donusum_tecrubesi ? '✓ Var' : '✗ Yok'}</span></div>
+                        <div class="data-item"><strong>Çevre Mevzuatı</strong><span>${data.cevre_mevzuati_bilgisi ? '✓ Var' : '✗ Yok'}</span></div>
+                    </div>
+                `;
+            }
+
+            // SGK
+            if (tip.includes('SGK')) {
+                return `
+                    <div class="data-grid">
+                        <div class="data-item"><strong>Toplam Deneyim</strong><span>${data.toplam_is_deneyimi_yil || 0} yıl ${data.toplam_is_deneyimi_ay || 0} ay</span></div>
+                        <div class="data-item"><strong>Prim Günü</strong><span>${(data.toplam_prim_gun || 0).toLocaleString('tr-TR')}</span></div>
+                        <div class="data-item"><strong>İlk İşe Giriş</strong><span>${data.ilk_ise_giris_tarihi || 'N/A'}</span></div>
+                        <div class="data-item"><strong>Son Çıkış</strong><span>${data.son_cikis_tarihi || 'N/A'}</span></div>
+                        <div class="data-item"><strong>Enerji</strong><span>${data.tecrube_enerji_yil || 0}y ${data.tecrube_enerji_ay || 0}a</span></div>
+                        <div class="data-item"><strong>Metal</strong><span>${data.tecrube_metal_yil || 0}y ${data.tecrube_metal_ay || 0}a</span></div>
+                        <div class="data-item"><strong>Mineral</strong><span>${data.tecrube_mineral_yil || 0}y ${data.tecrube_mineral_ay || 0}a</span></div>
+                        <div class="data-item"><strong>Kimya</strong><span>${data.tecrube_kimya_yil || 0}y ${data.tecrube_kimya_ay || 0}a</span></div>
+                        <div class="data-item"><strong>Atık</strong><span>${data.tecrube_atik_yil || 0}y ${data.tecrube_atik_ay || 0}a</span></div>
+                    </div>
+                `;
+            }
+
+            // Diploma
+            if (tip.includes('Diploma')) {
+                return `
+                    <div class="data-grid">
+                        <div class="data-item"><strong>Öğrenci</strong><span>${data.ogrenci_ad_soyad || 'N/A'}</span></div>
+                        <div class="data-item"><strong>TC</strong><span>${data.tc_kimlik_no || 'N/A'}</span></div>
+                        <div class="data-item"><strong>Üniversite</strong><span>${data.universite || 'N/A'} (${data.universite_tur || 'N/A'})</span></div>
+                        <div class="data-item"><strong>Fakülte</strong><span>${data.fakulte || 'N/A'}</span></div>
+                        <div class="data-item"><strong>Bölüm</strong><span>${data.bolum || 'N/A'}</span></div>
+                        <div class="data-item"><strong>Seviye</strong><span>${data.egitim_seviyesi || 'N/A'}</span></div>
+                        <div class="data-item"><strong>Mezuniyet</strong><span>${data.mezuniyet_yili || 'N/A'}</span></div>
+                        <div class="data-item"><strong>Diploma No</strong><span>${data.diploma_no || 'N/A'}</span></div>
+                        <div class="data-item"><strong>GANO</strong><span>${data.genel_not_ortalamasi || 'N/A'}</span></div>
+                    </div>
+                `;
+            }
+
+            // Adli Sicil
+            if (tip.includes('Adli')) {
+                const kayit = data.adli_sicil_varmi;
+                const bg = kayit ? 'bg-danger' : 'bg-success';
+                const text = kayit ? '✗ Kayıt VAR' : '✓ Kayıt YOK';
+                return `
+                    <div class="alert ${bg} text-white mb-3"><strong>${text}</strong></div>
+                    <div class="data-grid">
+                        <div class="data-item"><strong>Ad Soyad</strong><span>${data.ad_soyad || 'N/A'}</span></div>
+                        <div class="data-item"><strong>TC</strong><span>${data.tc_kimlik_no || 'N/A'}</span></div>
+                        <div class="data-item"><strong>Doğum Tarihi</strong><span>${data.dogum_tarihi || 'N/A'}</span></div>
+                        <div class="data-item"><strong>Doğum Yeri</strong><span>${data.dogum_yeri || 'N/A'}</span></div>
+                        <div class="data-item"><strong>Belge No</strong><span>${data.belge_no || 'N/A'}</span></div>
+                        <div class="data-item"><strong>Belge Tarihi</strong><span>${data.belge_tarihi || 'N/A'}</span></div>
+                    </div>
+                `;
+            }
+
+            // Genel veri gösterimi
+            let html = '<div class="data-grid">';
+            for (const [key, value] of Object.entries(data)) {
+                if (typeof value === 'object' || value === null || value === undefined) continue;
+                html += `<div class="data-item"><strong>${key}</strong><span>${value}</span></div>`;
+            }
+            html += '</div>';
+            return html;
+        }
+
+        function toggleJSON(id) {
+            document.getElementById(id).classList.toggle('active');
+        }
+
+        function showList() {
+            document.getElementById('list-view').style.display = 'block';
+            document.getElementById('detail-view').style.display = 'none';
+            currentTakip = null;
+        }
+    </script>
+</body>
+</html>

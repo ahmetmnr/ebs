@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(curl:*)",
+      "Bash(python -m json.tool:*)",
+      "Bash(timeout 300 python:*)",
+      "Bash(python:*)",
+      "Bash(cat:*)",
+      "Bash(where:*)",
+      "Bash(powershell -Command:*)",
+      "Bash(git init:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nİlk commit: E-Başvuru Doküman İşleme Sistemi\n\nBu commit, OCR ve LLM tabanlı doküman işleme sisteminin tüm temel bileşenlerini içermektedir.\n\nÖzellikler:\n- OCR ile belge tarama ve metin çıkarma\n- LLM ile belge sınıflandırma ve doğrulama\n- Çoklu belge tipi desteği (özgeçmiş, diploma, SGK, vb.)\n- FastAPI tabanlı REST API\n- Web tabanlı görüntüleyici arayüzü\n- SQLite veritabanı entegrasyonu\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(winget install:*)",
+      "Bash(choco install:*)",
+      "Bash(timeout 5 bash:*)",
+      "Bash(timeout 10 bash:*)",
+      "Bash(tasklist /FI \"IMAGENAME eq python.exe\")",
+      "Bash(git rm:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
