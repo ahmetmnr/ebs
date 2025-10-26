@@ -2,7 +2,11 @@
 Diploma analyzer.
 """
 
+import logging
+from typing import Dict, Optional, Any
 from .base_analyzer import BaseAnalyzer
+
+logger = logging.getLogger(__name__)
 
 
 class DiplomaAnalyzer(BaseAnalyzer):
@@ -10,6 +14,96 @@ class DiplomaAnalyzer(BaseAnalyzer):
 
     def get_document_type(self) -> str:
         return "Yök Lisans Diploması"
+
+    def analyze(self, belge_id: int) -> Optional[Dict[str, Any]]:
+        """
+        Diploma belgesini analiz et ve sonuca mezuniyet alanlarını ekle.
+
+        Args:
+            belge_id: Belge ID
+
+        Returns:
+            Dict: Analiz sonucu (diplomalar + mezuniyet alanları)
+        """
+        # Base analyze çalıştır
+        result = super().analyze(belge_id)
+
+        if not result:
+            return None
+
+        # Diplomalar varsa, ilk diploma kaydından mezuniyet bilgilerini çıkar
+        if 'diplomalar' in result and result['diplomalar']:
+            diplomalar = result['diplomalar']
+
+            # Birden fazla diploma olabilir, en yüksek seviyeyi al (YL > Lisans)
+            # Öncelik: Doktora > Yüksek Lisans > Lisans
+            sorted_diplomas = sorted(
+                diplomalar,
+                key=lambda d: self._diploma_priority(d.get('program_bolum', '')),
+                reverse=True
+            )
+
+            # En yüksek seviyedeki diplomayı kullan
+            primary_diploma = sorted_diplomas[0]
+
+            # Mezuniyet alanlarını ekle
+            result['mezun_universite'] = primary_diploma.get('universite')
+            result['mezun_bolum'] = primary_diploma.get('program_bolum')
+
+            # Mezuniyet tarihi DD/MM/YYYY formatında, sadece yılı al
+            mezuniyet_tarihi = primary_diploma.get('mezuniyet_tarihi')
+            if mezuniyet_tarihi:
+                try:
+                    # DD/MM/YYYY -> YYYY
+                    if isinstance(mezuniyet_tarihi, str) and '/' in mezuniyet_tarihi:
+                        yil = mezuniyet_tarihi.split('/')[-1]
+                        result['mezuniyet_yili'] = int(yil)
+                    elif isinstance(mezuniyet_tarihi, int):
+                        result['mezuniyet_yili'] = mezuniyet_tarihi
+                except (ValueError, IndexError) as e:
+                    logger.warning(f"Mezuniyet yılı parse edilemedi: {mezuniyet_tarihi} - {e}")
+                    result['mezuniyet_yili'] = None
+
+            # TC kimlik ve ad-soyad bilgilerini de ekle
+            result['tc_kimlik_no'] = primary_diploma.get('tc_kimlik_no')
+
+            # Ad soyad birleştir
+            ad = primary_diploma.get('ad', '')
+            soyad = primary_diploma.get('soyad', '')
+            if ad and soyad:
+                result['ad_soyad'] = f"{ad} {soyad}"
+
+            # Eğitim seviyesini belirle
+            program = primary_diploma.get('program_bolum', '').upper()
+            if 'DOKTORA' in program or 'DR' in program:
+                result['egitim_seviyesi'] = 'Doktora'
+            elif 'YL' in program or 'YÜKSEK LİSANS' in program or 'MASTER' in program:
+                result['egitim_seviyesi'] = 'Yüksek Lisans'
+            else:
+                result['egitim_seviyesi'] = 'Lisans'
+
+            logger.info(f"✓ Diploma bilgileri eklendi: {result.get('mezun_universite')} - {result.get('mezun_bolum')} ({result.get('mezuniyet_yili')})")
+
+        return result
+
+    def _diploma_priority(self, program_bolum: str) -> int:
+        """
+        Diploma öncelik seviyesi belirle.
+
+        Args:
+            program_bolum: Program/bölüm adı
+
+        Returns:
+            int: Öncelik seviyesi (yüksek = daha önemli)
+        """
+        program_upper = program_bolum.upper()
+
+        if 'DOKTORA' in program_upper or 'DR' in program_upper:
+            return 3
+        elif 'YL' in program_upper or 'YÜKSEK LİSANS' in program_upper or 'MASTER' in program_upper:
+            return 2
+        else:
+            return 1  # Lisans
 
     def get_prompt_template(self) -> str:
         return """Sen bir diploma analiz uzmanısın. YÖK diploma belgesinden SADECE BELGEDEKİ bilgileri çıkar.

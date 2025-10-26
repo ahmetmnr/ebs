@@ -46,31 +46,20 @@ class SGKAnalyzer(BaseAnalyzer):
             result = self.parser.parse_sgk_document(pdf_bytes)
 
             if result:
-                logger.info(f"✓ SGK parse başarılı: {result['toplam_is_deneyimi_yil']}y {result['toplam_is_deneyimi_ay']}a")
+                toplam_yil = result.get('toplam_is_deneyimi_yil', 0)
+                toplam_ay = result.get('toplam_is_deneyimi_ay', 0)
+                logger.info(f"✓ SGK parse başarılı: {toplam_yil}y {toplam_ay}a toplam deneyim")
 
-                # ÖNEMLİ: Sektör bilgilerini NULL yap!
-                # SGK belgesinde sektör bilgisi YOK, sadece toplam deneyim var
-                # Sektör bilgileri SADECE sektör belgelerinden gelecek
-                result['tecrube_enerji'] = None
-                result['tecrube_enerji_yil'] = None
-                result['tecrube_enerji_ay'] = None
-                result['tecrube_metal'] = None
-                result['tecrube_metal_yil'] = None
-                result['tecrube_metal_ay'] = None
-                result['tecrube_mineral'] = None
-                result['tecrube_mineral_yil'] = None
-                result['tecrube_mineral_ay'] = None
-                result['tecrube_kimya'] = None
-                result['tecrube_kimya_yil'] = None
-                result['tecrube_kimya_ay'] = None
-                result['tecrube_atik'] = None
-                result['tecrube_atik_yil'] = None
-                result['tecrube_atik_ay'] = None
-                result['tecrube_diger'] = None
-                result['tecrube_diger_yil'] = None
-                result['tecrube_diger_ay'] = None
+                # Sektör deneyimlerini de logla
+                sektorler = []
+                for sektor in ['enerji', 'metal', 'mineral', 'kimya', 'atik', 'diger']:
+                    yil_key = f'tecrube_{sektor}_yil'
+                    ay_key = f'tecrube_{sektor}_ay'
+                    if result.get(yil_key) or result.get(ay_key):
+                        sektorler.append(f"{sektor.capitalize()}: {result.get(yil_key, 0)}y {result.get(ay_key, 0)}a")
 
-                logger.info("Sektör bilgileri NULL olarak işaretlendi (sektör belgelerinden gelecek)")
+                if sektorler:
+                    logger.info(f"  Sektör deneyimleri: {', '.join(sektorler)}")
 
                 return result
             else:
