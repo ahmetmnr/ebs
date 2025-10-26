@@ -63,6 +63,149 @@ class Stats(BaseModel):
     toplam_chunk: int
 
 
+def _extract_sector_experience(sektor_dagilimi: List[Dict[str, Any]]) -> Dict[str, float]:
+    """Master JSON sektör dağılımından sektörel deneyim yılı çıkar."""
+    sektor_tecrubeleri = {
+        "enerji": 0.0,
+        "metal": 0.0,
+        "kimya": 0.0,
+        "mineral": 0.0,
+        "atik": 0.0,
+        "diger": 0.0,
+    }
+
+    sektor_map = {
+        'enerji': 'enerji',
+        'elektrik': 'enerji',
+        'metal': 'metal',
+        'çelik': 'metal',
+        'demir': 'metal',
+        'kimya': 'kimya',
+        'petrokimya': 'kimya',
+        'mineral': 'mineral',
+        'çimento': 'mineral',
+        'seramik': 'mineral',
+        'madencilik': 'mineral',
+        'atik': 'atik',
+        'geri dönüşüm': 'atik',
+    }
+
+    for sektor_item in sektor_dagilimi or []:
+        if not isinstance(sektor_item, dict):
+            continue
+        sektor_adi = (sektor_item.get('sektor_adi') or '').lower()
+        matched = None
+        for keyword, key in sektor_map.items():
+            if keyword in sektor_adi:
+                matched = key
+                break
+        if not matched:
+            matched = 'diger'
+        sektor_tecrubeleri[matched] += sektor_item.get('sure_yil') or 0
+
+    return sektor_tecrubeleri
+
+
+def _normalize_adli_sicil(adli_sicil: Dict[str, Any]) -> bool:
+    """Adli sicil bilgisinden kayıt var mı bilgisini üret."""
+    if not isinstance(adli_sicil, dict):
+        return False
+
+    sabika = adli_sicil.get('sabika_kaydi')
+    yuz_kizartici = adli_sicil.get('yuz_kizartici_suc')
+
+    if isinstance(yuz_kizartici, bool) and yuz_kizartici:
+        return True
+
+    if isinstance(sabika, bool):
+        return sabika
+
+    if isinstance(sabika, str):
+        return sabika.strip().lower() not in {"", "yok", "temiz", "hayır", "hayir", "none"}
+
+    return False
+
+
+def master_json_to_legacy(master_json: Dict[str, Any], basvuru: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
+    """Master JSON'u eski analiz_sonuclari formatına dönüştür."""
+    if not isinstance(master_json, dict):
+        return None
+
+    basvuran = master_json.get('basvuran') or {}
+    basvuru_info = master_json.get('basvuru_bilgileri') or {}
+    egitim = master_json.get('egitim_durumu') or {}
+    is_deneyimi = master_json.get('is_deneyimi') or {}
+    sektor_dagilimi = master_json.get('sektor_dagilimi') or []
+    projeler_master = master_json.get('projeler_ve_yayinlar') or {}
+    adli_sicil = master_json.get('adli_sicil') or {}
+
+    ad = basvuran.get('ad')
+    soyad = basvuran.get('soyad')
+    isim = " ".join(part for part in [ad, soyad] if part)
+    if not isim and basvuru:
+        isim = f"{basvuru.get('basvuruYapanAd', '')} {basvuru.get('basvuruYapanSoyad', '')}".strip()
+    isim = isim.strip() if isinstance(isim, str) else None
+
+    tc = basvuran.get('tc_kimlik_no') or (basvuru.get('basvuruYapanVatandasTC') if basvuru else None)
+
+    toplam_gun = is_deneyimi.get('toplam_sure_gun') or 0
+    toplam_yil = is_deneyimi.get('toplam_sure_yil')
+    if toplam_yil is None and toplam_gun:
+        toplam_yil = round(toplam_gun / 365, 2)
+    toplam_yil = toplam_yil or 0
+    toplam_ay = 0
+    if toplam_gun:
+        toplam_ay = int(round((toplam_gun % 365) / 30))
+
+    sektor_tecrubeleri = _extract_sector_experience(sektor_dagilimi)
+
+    projeler_list = projeler_master.get('liste', []) if isinstance(projeler_master, dict) else []
+    proje_sayisi = projeler_master.get('toplam_sayi') if isinstance(projeler_master, dict) else None
+    if proje_sayisi is None:
+        proje_sayisi = len(projeler_list)
+
+    basvurulan_sektor_listesi = basvuru_info.get('basvurulan_sektor_listesi')
+    if basvurulan_sektor_listesi is None:
+        sektor_flags = master_json.get('basvurulan_sektorler', {})
+        if isinstance(sektor_flags, dict):
+            basvurulan_sektor_listesi = [
+                sektor.capitalize()
+                for sektor, value in sektor_flags.items()
+                if value
+            ]
+        else:
+            basvurulan_sektor_listesi = []
+
+    return {
+        'ad_soyad': isim or None,
+        'tc_kimlik_no': tc,
+        'dogum_tarihi': basvuran.get('dogum_tarihi'),
+        'dogum_yeri': basvuran.get('dogum_yeri'),
+        'mezun_universite': egitim.get('universite'),
+        'mezun_bolum': egitim.get('bolum'),
+        'mezuniyet_yili': egitim.get('mezuniyet_yili'),
+        'egitim_seviyesi': egitim.get('en_yuksek_egitim'),
+        'toplam_is_deneyimi_yil': toplam_yil,
+        'toplam_is_deneyimi_ay': toplam_ay,
+        'tecrube_enerji': sektor_tecrubeleri['enerji'],
+        'tecrube_metal': sektor_tecrubeleri['metal'],
+        'tecrube_kimya': sektor_tecrubeleri['kimya'],
+        'tecrube_mineral': sektor_tecrubeleri['mineral'],
+        'tecrube_atik': sektor_tecrubeleri['atik'],
+        'tecrube_diger': sektor_tecrubeleri['diger'],
+        'adli_sicil_varmi': _normalize_adli_sicil(adli_sicil),
+        'yeşil_donusum_tecrubesi': None,
+        'cevre_mevzuati_bilgisi': None,
+        'enerji_verimliligi_tecrubesi': None,
+        'proje_yayin_sayisi': proje_sayisi,
+        'diplomalar': [],
+        'basvurulan_sektorler': basvurulan_sektor_listesi or [],
+        '_sektor_tecrubeleri': sektor_tecrubeleri,
+        '_adli_sicil_raw': adli_sicil,
+        '_projeler_listesi': projeler_list,
+    }
+
+
 @app.get("/")
 async def root():
     """Ana sayfa - HTML arayüzü"""
@@ -190,18 +333,32 @@ async def get_basvuru_by_takip(takip_no: str):
             belge['chunks'] = []
 
     # Analiz sonuçlarını ekle
-    query = "SELECT * FROM analiz_sonuclari WHERE basvuruId = ?"
-    analiz = db.fetchone(query, (basvuru['basvuruId'],))
+    query = "SELECT * FROM analiz_sonuclari WHERE takip_no = ?"
+    analiz_row = db.fetchone(query, (takip_no,))
+
+    analiz_master = None
+    if analiz_row and analiz_row.get('master_json'):
+        try:
+            master_json = json.loads(analiz_row['master_json'])
+        except (json.JSONDecodeError, TypeError):
+            master_json = None
+
+        legacy = master_json_to_legacy(master_json, basvuru) if master_json else None
+
+        analiz_master = {
+            'takip_no': analiz_row.get('takip_no'),
+            'durum': analiz_row.get('durum'),
+            'analiz_tarihi': analiz_row.get('analiz_tarihi'),
+            'tablolar': master_json.get('tablolar', {}) if isinstance(master_json, dict) else {},
+            'sonuc': legacy,
+            'master_json': master_json,
+        }
 
     return {
         'takip_no': takip_no,
         'basvuru': dict(basvuru),
         'belgeler': belgeler,
-        'analiz': {
-            'belgeler': belgeler,
-            'tablolar': {},  # Tablolar şimdilik boş (gerekirse ekleriz)
-            'sonuc': dict(analiz) if analiz else None
-        }
+        'analiz': analiz_master
     }
 
 
@@ -291,11 +448,18 @@ async def get_basvuru_ozet(takip_no: str):
     basvuru_id = basvuru['basvuruId']
 
     # Analiz sonuçları
-    query = "SELECT * FROM analiz_sonuclari WHERE basvuruId = ?"
-    analiz = db.fetchone(query, (basvuru_id,))
+    query = "SELECT * FROM analiz_sonuclari WHERE takip_no = ?"
+    analiz = db.fetchone(query, (takip_no,))
 
-    if not analiz:
+    if not analiz or not analiz.get('master_json'):
         raise HTTPException(status_code=404, detail="Analiz sonucu bulunamadı")
+
+    try:
+        master_json = json.loads(analiz['master_json'])
+    except (json.JSONDecodeError, TypeError):
+        raise HTTPException(status_code=500, detail="Analiz sonucu okunamadı")
+
+    legacy = master_json_to_legacy(master_json, basvuru)
 
     # Belge durumu kontrolü (hangi sektör belgeleri var?)
     query = """
@@ -331,33 +495,24 @@ async def get_basvuru_ozet(takip_no: str):
         elif 'Diğer' in belge_tipi:
             dokuman_durumu['diger'] = True
 
-    # Başvurulan sektörler (tecrübesi olan sektörler)
-    basvurulan_sektorler = []
-    if analiz.get('tecrube_enerji') and analiz['tecrube_enerji'] > 0:
-        basvurulan_sektorler.append("Enerji")
-    if analiz.get('tecrube_metal') and analiz['tecrube_metal'] > 0:
-        basvurulan_sektorler.append("Metal")
-    if analiz.get('tecrube_kimya') and analiz['tecrube_kimya'] > 0:
-        basvurulan_sektorler.append("Kimya")
-    if analiz.get('tecrube_mineral') and analiz['tecrube_mineral'] > 0:
-        basvurulan_sektorler.append("Mineral")
-    if analiz.get('tecrube_atik') and analiz['tecrube_atik'] > 0:
-        basvurulan_sektorler.append("Atık")
-    if analiz.get('tecrube_diger') and analiz['tecrube_diger'] > 0:
-        basvurulan_sektorler.append("Diğer")
+    # Başvurulan sektörler (Master JSON'dan)
+    basvurulan_sektorler = legacy.get('basvurulan_sektorler', []) if legacy else []
 
-    # Projeler
-    query = "SELECT tur, baslik, yil FROM proje_yayinlar WHERE basvuruId = ? ORDER BY sira_no"
-    projeler_db = db.fetchall(query, (basvuru_id,))
-
-    projeler = [
-        {
-            "tur": p['tur'],
-            "baslik": p['baslik'],
-            "yil": p['yil']
-        }
-        for p in projeler_db
-    ]
+    # Projeler (Master JSON'dan)
+    projeler_list = legacy.get('_projeler_listesi', []) if legacy else []
+    projeler = []
+    for proje in projeler_list:
+        if not isinstance(proje, dict):
+            continue
+        yil = None
+        tarih = proje.get('tarih')
+        if isinstance(tarih, str) and len(tarih) >= 4:
+            yil = tarih[:4]
+        projeler.append({
+            "tur": proje.get('tip'),
+            "baslik": proje.get('baslik'),
+            "yil": yil
+        })
 
     # Hizmet tipini belirle (Akademisyen/Sektör/Bakanlık)
     hizmet_adi = basvuru.get('hizmetAdi', '')
@@ -376,35 +531,40 @@ async def get_basvuru_ozet(takip_no: str):
         basvuru_turu += ' - Sorumlu'
 
     # FINAL FORMAT
+    sektor_tecrubeleri = {
+        "enerji": legacy.get('tecrube_enerji', 0) if legacy else 0,
+        "metal": legacy.get('tecrube_metal', 0) if legacy else 0,
+        "kimya": legacy.get('tecrube_kimya', 0) if legacy else 0,
+        "mineral": legacy.get('tecrube_mineral', 0) if legacy else 0,
+        "atik": legacy.get('tecrube_atik', 0) if legacy else 0,
+        "diger": legacy.get('tecrube_diger', 0) if legacy else 0,
+    }
+
+    adli_sicil_raw = legacy.get('_adli_sicil_raw', {}) if legacy else {}
+    egitim = master_json.get('egitim_durumu', {}) if isinstance(master_json, dict) else {}
+
     return {
         "basvuruId": basvuru_id,
         "basvuru_bilgileri": {
-            "ad_soyad": analiz.get('ad_soyad') or f"{basvuru.get('basvuruYapanAd', '')} {basvuru.get('basvuruYapanSoyad', '')}".strip(),
-            "tc": analiz.get('tc_kimlik_no') or basvuru.get('basvuruYapanVatandasTC'),
+            "ad_soyad": legacy.get('ad_soyad') if legacy else f"{basvuru.get('basvuruYapanAd', '')} {basvuru.get('basvuruYapanSoyad', '')}".strip(),
+            "tc": legacy.get('tc_kimlik_no') if legacy else basvuru.get('basvuruYapanVatandasTC'),
             "basvuru_turu": basvuru_turu
         },
         "sektor_bilgileri": {
             "basvurulan_sektorler": basvurulan_sektorler,
-            "tecrubeler": {
-                "enerji": analiz.get('tecrube_enerji') or 0,
-                "metal": analiz.get('tecrube_metal') or 0,
-                "kimya": analiz.get('tecrube_kimya') or 0,
-                "mineral": analiz.get('tecrube_mineral') or 0,
-                "atik": analiz.get('tecrube_atik') or 0,
-                "diger": analiz.get('tecrube_diger') or 0
-            }
+            "tecrubeler": sektor_tecrubeleri
         },
-        "dokuman_durumu": dokuman_durumu,
+        "dokuman_durumu": {**dokuman_durumu, **(master_json.get('sektor_belge_durumu', {}) or {})},
         "adli_sicil": {
-            "var_mi": bool(analiz.get('adli_sicil_varmi')),
-            "kod": None  # Adli sicil kodu şu an kaydedilmiyor
+            "var_mi": legacy.get('adli_sicil_varmi') if legacy else False,
+            "kod": adli_sicil_raw.get('belge_no') if isinstance(adli_sicil_raw, dict) else None
         },
         "mezuniyet": {
-            "universite": analiz.get('mezun_universite'),
-            "bolum": analiz.get('mezun_bolum'),
-            "yil": analiz.get('mezuniyet_yili')
+            "universite": egitim.get('universite'),
+            "bolum": egitim.get('bolum'),
+            "yil": egitim.get('mezuniyet_yili')
         },
-        "diplomalar": json.loads(analiz.get('diploma_bilgileri_json')) if analiz.get('diploma_bilgileri_json') else [],
+        "diplomalar": legacy.get('diplomalar', []) if legacy else [],
         "projeler": projeler
     }
 
