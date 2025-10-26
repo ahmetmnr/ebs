@@ -385,6 +385,21 @@ class AnalysisOrchestrator:
         # Şimdi tüm tipleri birleştir
         final_result = {}
 
+        # SPECIAL: Diploma array handling - diplomalar tüm diploma kayıtlarını içerir
+        diploma_array = []
+        for belge_tipi, merged in type_merged.items():
+            if 'Diploma' in belge_tipi and 'diplomalar' in merged:
+                # Diploma belgelerinden tüm diploma kayıtlarını topla
+                diplomas = merged['diplomalar']
+                if isinstance(diplomas, list):
+                    diploma_array.extend(diplomas)
+                elif isinstance(diplomas, dict):
+                    diploma_array.append(diplomas)
+
+        if diploma_array:
+            final_result['diplomalar'] = diploma_array
+            logger.info(f"Toplam {len(diploma_array)} diploma kaydı birleştirildi")
+
         all_keys = set()
         for merged in type_merged.values():
             all_keys.update(merged.keys())
@@ -542,7 +557,7 @@ class AnalysisOrchestrator:
             INSERT OR REPLACE INTO analiz_sonuclari (
                 basvuruId,
                 ad_soyad, tc_kimlik_no, dogum_tarihi, dogum_yeri,
-                mezun_universite, mezun_bolum, mezuniyet_yili, egitim_seviyesi,
+                mezun_universite, mezun_bolum, mezuniyet_yili, egitim_seviyesi, diploma_bilgileri_json,
                 toplam_is_deneyimi_yil, toplam_is_deneyimi_ay,
                 tecrube_enerji, tecrube_metal, tecrube_mineral, tecrube_kimya, tecrube_atik,
                 adli_sicil_varmi, yeşil_donusum_tecrubesi, cevre_mevzuati_bilgisi,
@@ -552,9 +567,15 @@ class AnalysisOrchestrator:
                 kaynak_detay, celiski_notlari,
                 analiz_tarihi, analiz_suresi_sn
             ) VALUES (
-                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
             )
         """
+
+        # diploma_bilgileri_json'u final_result'tan al veya boş JSON array
+        diploma_json = final_result.get('diploma_bilgileri_json')
+        if not diploma_json and final_result.get('diplomalar'):
+            # Eğer diplomalar varsa JSON'a çevir
+            diploma_json = json.dumps(final_result.get('diplomalar'), ensure_ascii=False)
 
         params = (
             self.basvuru_id,
@@ -566,6 +587,7 @@ class AnalysisOrchestrator:
             final_result.get('mezun_bolum'),
             final_result.get('mezuniyet_yili'),
             final_result.get('egitim_seviyesi'),
+            diploma_json,  # YENI: diploma_bilgileri_json
             final_result.get('toplam_is_deneyimi_yil', 0),
             final_result.get('toplam_is_deneyimi_ay', 0),
             final_result.get('tecrube_enerji', 0),

@@ -118,6 +118,7 @@ CREATE TABLE IF NOT EXISTS analiz_sonuclari (
     mezun_bolum TEXT,
     mezuniyet_yili INTEGER CHECK(mezuniyet_yili >= 1950 AND mezuniyet_yili <= 2030 OR mezuniyet_yili IS NULL),
     egitim_seviyesi TEXT CHECK(egitim_seviyesi IN ('Lisans', 'Yüksek Lisans', 'Doktora', NULL)),
+    diploma_bilgileri_json TEXT,  -- Tüm diploma kayıtları JSON array: [{"tc_kimlik_no": "...", "ad": "...", "soyad": "...", "universite": "...", "fakulte": "...", "program_bolum": "...", "mezuniyet_tarihi": "DD/MM/YYYY", "diploma_numarasi": "...", "diploma_notu": 3.14, "durum": "Mezuniyet"}]
 
     -- === PROJE/YAYIN ===
     proje_yayin_sayisi INTEGER DEFAULT 0 CHECK(proje_yayin_sayisi >= 0),
